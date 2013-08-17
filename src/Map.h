@@ -1,3 +1,6 @@
+#ifndef MAP_H
+#define MAP_H
+
 struct Tile {
     bool can_walk;
     Tile() : can_walk(true) {}
@@ -19,3 +22,4 @@ class Map {
         void setWall(int x, int y);
 };
 
+#endif

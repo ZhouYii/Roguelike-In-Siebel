@@ -42,7 +42,6 @@ void Map::render() const {
 
     for(int i = 0; i < width; i++)
         for(int j = 0; j < height; j++)
-            TCODConsole::root->setCharBackGround(i, j, 
+            TCODConsole::root->setCharBackground(i, j, 
                     isWall(i,j) ? kDarkWall : kDarkGround);
-
-
+}

@@ -18,7 +18,7 @@ Engine::~Engine() {
 
 void Engine::update() {
     TCOD_key_t key;
-    TCODSystem::checkForEvent(TCOD_EVENT_KET_PRESS, &key, NULL);
+    TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
     switch(key.vk) {
         case TCODK_UP : 
             if ( ! map->isWall(player->x,player->y-1)) {
@@ -50,7 +50,7 @@ void Engine::render() {
 
     //Pseudo interator : the begin function gives a pointer to the first
     //element, therefore double pointer.
-    for(Actor** interator = actors.begin(); iterator != actors.end(); iterator++)
+    for(Actor** iterator = actors.begin(); iterator != actors.end(); iterator++)
         (*iterator)->render();
 }
 

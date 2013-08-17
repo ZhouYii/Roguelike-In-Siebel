@@ -1,3 +1,6 @@
+#ifndef ACTOR_H
+#define ACTOR_H
+
 class Actor {
     public:
         int x,y;
@@ -7,3 +10,5 @@ class Actor {
         Actor(int x, int y, int ch, const TCODColor &col);
         void render() const; 
 };
+
+#endif

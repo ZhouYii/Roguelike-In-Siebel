@@ -1,3 +1,6 @@
+#ifndef ENGINE_H
+#define ENGINE_H
+
 class Engine {
     public:
         TCODList<Actor *> actors;
@@ -11,3 +14,5 @@ class Engine {
 };
 
 extern Engine engine;
+
+#endif
