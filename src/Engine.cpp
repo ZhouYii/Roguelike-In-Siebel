@@ -63,8 +63,14 @@ void Engine::render()
 
     //Pseudo interator : the begin function gives a pointer to the first
     //element, therefore double pointer.
-    for(Actor** iterator = actors.begin(); iterator != actors.end(); iterator++)
-        (*iterator)->render();
+    // draw the actors
+    for (Actor **iterator=actors.begin(); iterator != actors.end();
+        iterator++) {
+        Actor *actor=*iterator;
+        if ( map->inFov(actor->x,actor->y) ) {
+            actor->render();
+        }
+    }
 }
 
 
