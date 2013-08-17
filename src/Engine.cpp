@@ -3,62 +3,61 @@
 #include "Map.h"
 #include "Engine.h"
 
-Engine::Engine() : fovRadius(10), computeFov(true) {
+Engine::Engine() : game_status(STARTUP), fov_radius(10)
+{
     TCODConsole::initRoot(80, 50, "A Rogue in Siebel", false);
-    player = new Actor(40, 25, '@', TCODColor::white);
+    player = new Actor(40, 25, '@', "HeroProtagonist", TCODColor::white);
     actors.push(player);
     map = new Map(80, 45);
 }
 
-Engine::~Engine() {
+Engine::~Engine()  
+{
     actors.clearAndDelete();
     delete map;
 }
 
-void Engine::update() {
+void Engine::update() 
+{
     TCOD_key_t key;
+
+    if(game_status == STARTUP)
+        map->computeFov();
+    game_status = IDLE;
+
     TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
+    int dx=0, dy=0;
 
-    //If player moves, recompute field of view
-    if(key.vk == TCODK_UP || 
-        key.vk == TCODK_DOWN || 
-        key.vk == TCODK_LEFT || 
-        key.vk == TCODK_RIGHT) {
-        computeFov = true;
-    }
-
-    switch(key.vk) {
-        case TCODK_UP : 
-            if ( ! map->isWall(player->x,player->y-1)) {
-                player->y--;   
-            }
-            break;
-        case TCODK_DOWN : 
-            if ( ! map->isWall(player->x,player->y+1)) {
-                player->y++;
-            }
-        break;
-        case TCODK_LEFT : 
-            if ( ! map->isWall(player->x-1,player->y)) {
-                player->x--;
-            }
-        break;
-        case TCODK_RIGHT : 
-            if ( ! map->isWall(player->x+1,player->y)) {
-                player->x++;
-            }
-        break;
+    switch(key.vk) 
+    {
+        case TCODK_UP : dy=-1; break;
+        case TCODK_DOWN : dy=1; break;
+        case TCODK_LEFT : dx=-1; break;
+        case TCODK_RIGHT : dx=1; break;
         default:break;
     }
 
-    //Not all keypresses lead to new fov
-    if(computeFov) {
-        map->computeFov();
-        computeFov = false;
+    if( dx != 0 || dy != 0)
+    {
+        game_status = NEW_TURN;
+        if( player->moveOrAttack( player->x + dx, player->y + dy) )
+            map->computeFov();
+    }
+
+    //Check to see if player move was okay. If so, move all other Actors
+    if( game_status == NEW_TURN ) {
+        for( Actor **iterator = engine.actors.begin();
+                iterator != engine.actors.end(); iterator++)
+        {
+            Actor *actor = *iterator;
+            if( actor != player )
+                actor->update();
+        }
     }
 }
 
-void Engine::render() {
+void Engine::render() 
+{
     TCODConsole::root->clear();
     map->render();
 

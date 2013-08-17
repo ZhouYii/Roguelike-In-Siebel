@@ -3,12 +3,20 @@
 
 class Engine {
     public:
+        enum GameStatus {
+            STARTUP,
+            IDLE,
+            NEW_TURN,
+            WIN,
+            LOSE,
+        } game_status;
+        
         TCODList<Actor *> actors;
         Actor * player;
         Map *map;
 
         //Radius of zero == infinite radius
-        int fovRadius;
+        int fov_radius;
 
         Engine();
         ~Engine();
@@ -16,7 +24,7 @@ class Engine {
         void render();
 
     private:
-        bool computeFov;
+        bool compute_fov;
 };
 
 extern Engine engine;

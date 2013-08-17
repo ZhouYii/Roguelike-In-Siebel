@@ -4,10 +4,12 @@
 #include "Engine.h"
 
 #include "BspListener.cpp"
+#include "Configuration.cpp"
 
 //Used for the BSP tree to partition rooms
-const int ROOM_MAX_SIZE = 12;
-const int ROOM_MIN_SIZE = 6;
+extern const int ROOM_MAX_SIZE;
+extern const int ROOM_MIN_SIZE;
+extern const int MAX_ROOM_MONSTERS;
 
 /*
  * <-----------Width--------->
@@ -39,8 +41,33 @@ Map::~Map(){
         delete map;
 }
 
+void Map::addMonster(int x, int y) {
+    TCODRandom *rng = TCODRandom::getInstance();
+
+    //Randomly decide to generate an orc or troll
+    if( rng->getInt(0, 100) < 80)
+        engine.actors.push(new Actor(x, y, 'O', "Orc", TCODColor::desaturatedGreen));
+    else
+        engine.actors.push(new Actor(x, y, 'T', "Troll", TCODColor::darkerGreen));
+
+}
 bool Map::isWall(int x, int y) const {
     return !map->isWalkable(x,y);
+}
+
+bool Map::canWalk(int x, int y) const {
+    if(isWall(x, y))
+        return false;
+    
+    for(Actor **iterator = engine.actors.begin(); 
+            iterator != engine.actors.end(); iterator++) { 
+
+        Actor *actor = *iterator;
+        if((actor->x == x) && (actor->y == y))
+            return false;
+    }
+
+    return true;
 }
 
 bool Map::isExplored(int x, int y) const {
@@ -105,16 +132,25 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
     dig(x1, y1, x2, y2);
     int avg_x = (x1 + x2) / 2;
     int avg_y = (y1 + y2) / 2;
+
     if(first) {
+
         engine.player->x = avg_x;
         engine.player->y = avg_y;
-    } else {
-        TCODRandom *rng = TCODRandom::getInstance();
 
-        //Right now I'm neglecting any entity generation. Just put some NPCs
-        //randomly.
-        if(rng->getInt(0,3) == 0)
-            engine.actors.push(new Actor(avg_x, avg_y, 'N', TCODColor::yellow));
+    } else {
+
+        TCODRandom *rng = TCODRandom::getInstance();
+        int num_monsters = rng->getInt(0, MAX_ROOM_MONSTERS);
+
+        while(num_monsters > 0)
+        {
+            int x = rng->getInt(x1, x2);
+            int y = rng->getInt(y1, y2);
+            if(canWalk(x, y))
+                addMonster(x, y);
+            num_monsters--;
+        }
     }
 }
 
@@ -129,7 +165,7 @@ bool Map::inFov(int x, int y) const {
 }
 
 void Map::computeFov() {
-    map->computeFov(engine.player->x, engine.player->y, engine.fovRadius);
+    map->computeFov(engine.player->x, engine.player->y, engine.fov_radius);
 }
 
 
