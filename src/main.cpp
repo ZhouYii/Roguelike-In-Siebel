@@ -1,4 +1,5 @@
 #include "libtcod.hpp"
+#include "Actor.h"
 int main() {
     int player_x = 40, player_y = 25;
     TCODConsole::initRoot(80,50,"libtcod C++ tutorial",false);
