@@ -3,7 +3,7 @@
 #include "Map.h"
 #include "Engine.h"
 
-Engine::Engine() {
+Engine::Engine() : fovRadius(10), computeFov(true) {
     TCODConsole::initRoot(80, 50, "A Rogue in Siebel", false);
     player = new Actor(40, 25, '@', TCODColor::white);
     actors.push(player);
@@ -18,12 +18,21 @@ Engine::~Engine() {
 void Engine::update() {
     TCOD_key_t key;
     TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
+
+    //If player moves, recompute field of view
+    if(key.vk == TCODK_UP || 
+        key.vk == TCODK_DOWN || 
+        key.vk == TCODK_LEFT || 
+        key.vk == TCODK_RIGHT) {
+        computeFov = true;
+    }
+
     switch(key.vk) {
         case TCODK_UP : 
             if ( ! map->isWall(player->x,player->y-1)) {
                 player->y--;   
             }
-        break;
+            break;
         case TCODK_DOWN : 
             if ( ! map->isWall(player->x,player->y+1)) {
                 player->y++;
@@ -40,6 +49,12 @@ void Engine::update() {
             }
         break;
         default:break;
+    }
+
+    //Not all keypresses lead to new fov
+    if(computeFov) {
+        map->computeFov();
+        computeFov = false;
     }
 }
 

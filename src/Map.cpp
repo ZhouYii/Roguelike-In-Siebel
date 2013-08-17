@@ -22,6 +22,7 @@ const int ROOM_MIN_SIZE = 6;
 
 Map::Map(int width, int height) : width(width), height(height) {
     tiles = new Tile[width * height];
+    map = new TCODMap(width, height);
 
     //Tree structure
     TCODBsp bsp(0, 0, width, height);
@@ -33,22 +34,35 @@ Map::Map(int width, int height) : width(width), height(height) {
 Map::~Map(){
     if(tiles)
         delete[] tiles;
+
+    if(map)
+        delete map;
 }
 
 bool Map::isWall(int x, int y) const {
-    return !tiles[y*width + x].can_walk;
+    return !map->isWalkable(x,y);
+}
+
+bool Map::isExplored(int x, int y) const {
+    return tiles[width*y + x].explored;
 }
 
 void Map::render() const {
     //Static allocates these two objects to cut some overhead from function
     //calls since the maps get rendered every event loop.
-    static const TCODColor kDarkWall(0,0,100);
-    static const TCODColor kDarkGround(50,50,150);
+    static const TCODColor DARK_WALL(0,0,100);
+    static const TCODColor DARK_GROUND(50,50,150);
+    static const TCODColor LIGHT_WALL(130,110,50);
+    static const TCODColor LIGHT_GROUND(200,180,50);
 
-    for(int i = 0; i < width; i++)
-        for(int j = 0; j < height; j++)
-            TCODConsole::root->setCharBackground(i, j, 
-                    isWall(i,j) ? kDarkWall : kDarkGround);
+    for(int x = 0; x < width; x++)
+        for(int y = 0; y < height; y++)
+            if(inFov(x,y))
+                TCODConsole::root->setCharBackground(x, y, 
+                        isWall(x,y) ? LIGHT_WALL : LIGHT_GROUND);
+            else if(isExplored(x,y))
+                TCODConsole::root->setCharBackground(x, y,
+                        isWall(x,y) ? DARK_WALL : DARK_GROUND);
 }
 
 void Map::checkCoordinateBounds(int &x1, int &y1)
@@ -83,7 +97,7 @@ void Map::dig(int x1, int y1, int x2, int y2) {
     verifyRoomCoords(x1, y1, x2, y2);
     for(int tile_x = x1; tile_x <= x2; tile_x++)
         for(int tile_y = y1; tile_y <= y2; tile_y++)
-            tiles[width*tile_y + tile_x].can_walk = true;
+            map->setProperties(tile_x, tile_y, true, true);
 
 }
 
@@ -103,3 +117,19 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
             engine.actors.push(new Actor(avg_x, avg_y, 'N', TCODColor::yellow));
     }
 }
+
+bool Map::inFov(int x, int y) const {
+    if( map->isInFov(x, y) )
+    {
+        //When a cell is see-able, then mark it as explored.
+        tiles[y*width + x].explored = true;
+        return true;
+    }
+    return false;
+}
+
+void Map::computeFov() {
+    map->computeFov(engine.player->x, engine.player->y, engine.fovRadius);
+}
+
+
