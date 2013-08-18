@@ -1,10 +1,6 @@
-#include "libtcod.hpp"
-#include "Map.h"
-#include "Actor.h"
-#include "Engine.h"
+#include "main.h"
 
 #include "BspListener.cpp"
-#include "Configuration.cpp"
 
 //Used for the BSP tree to partition rooms
 extern const int ROOM_MAX_SIZE;
@@ -46,11 +42,24 @@ void Map::addMonster(int x, int y) {
 
     //Randomly decide to generate an orc or troll
     if( rng->getInt(0, 100) < 80)
-        engine.actors.push(new Actor(x, y, 'O', "Orc", TCODColor::desaturatedGreen));
+    {
+        Actor * orc = new Actor(x, y, 'O', "Orc", TCODColor::desaturatedGreen);
+        orc->destructible = new MonsterDestructible(10, 0, "dead orc");
+        orc->attacker = new Attacker(3);
+        orc->ai = new MonsterAi();
+        engine.actors.push(orc);
+    }
     else
-        engine.actors.push(new Actor(x, y, 'T', "Troll", TCODColor::darkerGreen));
-
+    {
+        Actor * troll = new Actor(x, y, 'T', "Troll", TCODColor::darkerGreen);
+        troll->destructible = new MonsterDestructible(16, 1, "troll carcass");
+        troll->attacker = new Attacker(4);
+        troll->ai = new MonsterAi();
+        engine.actors.push(troll);
+    }
 }
+
+
 bool Map::isWall(int x, int y) const {
     return !map->isWalkable(x,y);
 }
@@ -63,7 +72,7 @@ bool Map::canWalk(int x, int y) const {
             iterator != engine.actors.end(); iterator++) { 
 
         Actor *actor = *iterator;
-        if((actor->x == x) && (actor->y == y))
+        if(actor->blocking && (actor->x == x) && (actor->y == y))
             return false;
     }
 
