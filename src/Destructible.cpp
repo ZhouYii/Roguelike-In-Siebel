@@ -49,3 +49,14 @@ void PlayerDestructible::die(Actor *target)
     engine.game_status = Engine::LOSE;
 }
 
+float Destructible::heal(float amount) 
+{
+    hp += amount;
+    if(hp > max_hp)
+    {
+        amount -= hp - max_hp;
+        hp = max_hp;
+    }
+    return amount;
+}
+

@@ -3,6 +3,8 @@
 #include "main.h"
 
 extern const int TRACKING_TURNS;
+extern const int INVENTORY_SCRN_WIDTH;
+extern const int INVENTORY_SCRN_HEIGHT;
 void PlayerAi::update(Actor *target) 
 {
     //Did the player fuck up and get himself killed?
@@ -15,15 +17,65 @@ void PlayerAi::update(Actor *target)
     case TCODK_DOWN : dy=1; break;
     case TCODK_LEFT : dx=-1; break;
     case TCODK_RIGHT : dx=1; break;
+    case TCODK_CHAR : handleActionKey(target, engine.last_key.c); break;
         default:break;
     }
     if (dx != 0 || dy != 0) {
         engine.game_status=Engine::NEW_TURN;
-        if (moveOrAttack(target, target->x+dx,target->y+dy)) {
+        if (moveOrAttack(target, target->x+dx,target->y+dy)) 
             engine.map->computeFov();
-        }
     }
 }
+
+void PlayerAi::handleActionKey(Actor *player, int ascii)
+{
+    switch(ascii)
+    {
+        case 'g': //Pick up the item
+            {
+                bool found = false;
+                for(Actor **it = engine.actors.begin(); it != engine.actors.end(); it++)
+                {
+                    Actor *actor = *it;
+                    if(actor->pickable && actor->x == player->x && actor->y == player->y) 
+                    {
+                        if(actor->pickable->pick(actor, player))
+                        {
+                            found = true;
+                            engine.gui->log_message(TCODColor::lightGrey, "You picked up a %s", actor->name);
+                            break;
+                        } else if(!found) {
+                            //Pick up failed despite item being pick-able and
+                            //player having an inventory means inventory is
+                            //full.
+                            found = true;
+                            engine.gui->log_message(TCODColor::red, "Your inventory is full");
+                        }
+                    }
+                }
+
+                if(!found)
+                    engine.gui->log_message(TCODColor::lightGrey, "There's nothing here to pick up");
+                engine.game_status = Engine::NEW_TURN;
+            }
+            break;
+
+        case 'i':
+            {
+                Actor *actor = choseFromInventory(player);
+                if(actor)
+                {
+                    actor->pickable->use(actor, player);
+                    engine.game_status = Engine::NEW_TURN;
+                }
+            }
+            break;
+
+        default: break;
+    }
+}
+
+
 
 bool PlayerAi::moveOrAttack(Actor *target, int x, int y)
 {
@@ -43,8 +95,9 @@ bool PlayerAi::moveOrAttack(Actor *target, int x, int y)
     for(Actor ** iterator=engine.actors.begin();
             iterator != engine.actors.end(); iterator++) {
         Actor *actor = *iterator;
-        if(actor->destructible && actor->destructible->isDead() &&
-                actor->x == x && actor->y == y) {
+        
+        bool corpse_or_item = (actor->destructible && actor->destructible->isDead()) || actor->pickable;
+        if(corpse_or_item && actor->x == x && actor->y == y) {
             engine.gui->log_message(TCODColor::lightGrey,"There's a %s here",actor->name);
         }
     }
@@ -53,6 +106,44 @@ bool PlayerAi::moveOrAttack(Actor *target, int x, int y)
     target->y = y;
     return true;
 }
+
+Actor *PlayerAi::choseFromInventory(Actor *player)
+{
+    static TCODConsole con(INVENTORY_SCRN_WIDTH,INVENTORY_SCRN_HEIGHT);
+
+    //Put a frame
+    con.setDefaultForeground(TCODColor(200,180,50));
+    con.printFrame(0,0,INVENTORY_SCRN_WIDTH,INVENTORY_SCRN_HEIGHT,true, 
+                TCOD_BKGND_DEFAULT,"inventory");
+    con.setDefaultForeground(TCODColor::white);
+    int shortcut = 'a';
+    int y = 1;
+    for(Actor **it = player->container->inventory.begin();
+            it != player->container->inventory.end(); it++)
+    {
+        Actor *actor = *it;
+        con.print(2, y, "(%c) %s", shortcut, actor->name);
+        y++;
+        shortcut++;
+    }
+
+    TCODConsole::blit(&con, 0,0,INVENTORY_SCRN_WIDTH, INVENTORY_SCRN_HEIGHT,
+            TCODConsole::root, engine.screen_width/2 - INVENTORY_SCRN_WIDTH/2,
+            engine.screen_height/2 - INVENTORY_SCRN_HEIGHT/2);;
+    TCODConsole::flush();
+
+    TCOD_key_t key;
+    TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL, true);
+
+    if(key.vk == TCODK_CHAR)
+    {
+        int index = key.c - 'a';
+        if(index >= 0 && index < player->container->inventory.size())
+            return player->container->inventory.get(index);
+    }
+    return NULL;
+}
+
 
 void MonsterAi::update(Actor *target) {
     //Is it dead?

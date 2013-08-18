@@ -10,6 +10,7 @@ class Destructible
         inline bool isDead() {return hp <= 0; };
         float calcDamage(Actor * target, float damage); //returns damage after defense
         virtual void die(Actor* target);
+        float heal(float amount);
 };
 
 class MonsterDestructible : public Destructible 

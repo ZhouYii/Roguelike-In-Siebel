@@ -10,6 +10,8 @@ class PlayerAi : public Ai {
 
     protected:
         bool moveOrAttack(Actor *target, int x, int y);
+        void handleActionKey(Actor *player, int ascii);
+        Actor *choseFromInventory(Actor *player);
 };
 
 class MonsterAi : public Ai {

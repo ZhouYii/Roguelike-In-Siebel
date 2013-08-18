@@ -6,6 +6,7 @@
 extern const int ROOM_MAX_SIZE;
 extern const int ROOM_MIN_SIZE;
 extern const int MAX_ROOM_MONSTERS;
+extern const int MOX_ROOM_ITEMS;
 
 /*
  * <-----------Width--------->
@@ -58,6 +59,15 @@ void Map::addMonster(int x, int y) {
         engine.actors.push(troll);
     }
 }
+
+void Map::addItem(int x, int y)
+{
+    Actor *health_pot = new Actor(x, y, '!', "health potion", TCODColor::violet);
+    health_pot->blocking = false;
+    health_pot->pickable = new HealingEntity(10);
+    engine.actors.push(health_pot);
+}
+
 
 
 bool Map::isWall(int x, int y) const {
@@ -150,8 +160,9 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
     } else {
 
         TCODRandom *rng = TCODRandom::getInstance();
-        int num_monsters = rng->getInt(0, MAX_ROOM_MONSTERS);
 
+        //Generate monsters randomly
+        int num_monsters = rng->getInt(0, MAX_ROOM_MONSTERS);
         while(num_monsters > 0)
         {
             int x = rng->getInt(x1, x2);
@@ -159,6 +170,17 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
             if(canWalk(x, y))
                 addMonster(x, y);
             num_monsters--;
+        }
+
+        //Generate items randomly
+        int num_items = rng->getInt(0, MAX_ROOM_ITEMS);
+        while(num_items > 0)
+        {
+            int x = rng->getInt(x1, x2);
+            int y = rng->getInt(y1, y2);
+            if(canWalk(x, y))
+                addItem(x, y);
+            num_items--;
         }
     }
 }

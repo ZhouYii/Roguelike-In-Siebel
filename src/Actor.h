@@ -11,8 +11,11 @@ class Actor
         Attacker *attacker; //can deal damage
         Destructible *destructible; //can be damaged
         Ai *ai; 
+        Pickable *pickable; //Can be picked up?
+        Container *container; //Can hold an inventory?
 
         Actor(int x, int y, int ch, const char* name, const TCODColor &col);
+        ~Actor();
         void update();
         void render() const; 
 };
