@@ -38,13 +38,13 @@ PlayerDestructible::PlayerDestructible(float max_hp, float defense, const char *
 
 void MonsterDestructible::die(Actor *target) 
 {
-    printf("%s is dead \n", target->name);
+    engine.gui->log_message(TCODColor::lightGrey,"%s is dead",target->name);
     Destructible::die(target);
 }
 
 void PlayerDestructible::die(Actor *target) 
 {
-    printf("You didn't turn in the homework!\n");
+    engine.gui->log_message(TCODColor::red,"You failed to submit the assignment!");
     Destructible::die(target);
     engine.game_status = Engine::LOSE;
 }

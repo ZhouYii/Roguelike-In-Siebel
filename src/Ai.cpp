@@ -45,7 +45,7 @@ bool PlayerAi::moveOrAttack(Actor *target, int x, int y)
         Actor *actor = *iterator;
         if(actor->destructible && actor->destructible->isDead() &&
                 actor->x == x && actor->y == y) {
-            printf("There's a %s here\n",actor->name);
+            engine.gui->log_message(TCODColor::lightGrey,"There's a %s here",actor->name);
         }
     }
 

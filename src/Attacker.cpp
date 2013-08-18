@@ -9,15 +9,18 @@ void Attacker::attack(Actor *attacker, Actor *target)
     {
         if(attack_points - target->destructible->defense > 0)
         {
-            printf("%s attacks %s for %g hit points.\n", attacker->name, target->name,
-                 attack_points - target->destructible->defense);
+            engine.gui->log_message(attacker==engine.player ? TCODColor::red : TCODColor::lightGrey,
+                "%s attacks %s for %g hit points.", attacker->name, target->name,
+                attack_points - target->destructible->defense);
         } else {
-            printf("%s attacks %s but is too weak!\n", attacker->name, target->name);
+            engine.gui->log_message(TCODColor::lightGrey,
+                "%s attacks %s but it has no effect!", attacker->name, target->name);
         }
     target->destructible->calcDamage(target, attack_points);
 
     } else {
-        printf("%s attacks %s in vain.\n",attacker->name,target->name);
+        engine.gui->log_message(TCODColor::lightGrey,
+            "%s attacks %s in vain.",attacker->name,target->name);
     }
 }
 

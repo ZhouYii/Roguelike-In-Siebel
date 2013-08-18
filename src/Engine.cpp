@@ -9,13 +9,18 @@ Engine::Engine(int screen_width, int screen_height) : game_status(STARTUP), scre
     player->attacker = new Attacker(5);
     player->ai = new PlayerAi();
     actors.push(player);
-    map = new Map(80, 45);
+    map = new Map(80, 43);
+    gui = new Gui();
+
+    gui->log_message(TCODColor::red, "Welcome to Siebel Center");
+
 }
 
 Engine::~Engine()  
 {
     actors.clearAndDelete();
     delete map;
+    delete gui;
 }
 
 void Engine::update() 
@@ -24,7 +29,7 @@ void Engine::update()
         map->computeFov();
 
     game_status = IDLE;
-    TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &last_key, NULL);
+    TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&last_key,&mouse);
     player->update();
 
     //Check to see if player move was okay. If so, move all other Actors
@@ -54,10 +59,10 @@ void Engine::render()
             actor->render();
         }
     }
-
+    gui->render();
     // show the player's stats
-    TCODConsole::root->print(1,screen_height-2, "HP : %d/%d",
-        (int)player->destructible->hp,(int)player->destructible->max_hp);
+    //TCODConsole::root->print(1,screen_height-2, "HP : %d/%d",
+        //(int)player->destructible->hp,(int)player->destructible->max_hp);
 
 }
 

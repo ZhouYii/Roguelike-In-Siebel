@@ -164,6 +164,9 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
 }
 
 bool Map::inFov(int x, int y) const {
+    if ( x < 0 || x >= width || y < 0 || y >= height ) 
+        return false;
+
     if( map->isInFov(x, y) )
     {
         //When a cell is see-able, then mark it as explored.

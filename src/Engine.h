@@ -13,11 +13,14 @@ class Engine {
 
         int screen_width;
         int screen_height;
+        Gui *gui;
         TCOD_key_t last_key;
-        
+        TCOD_mouse_t mouse;
+
         TCODList<Actor *> actors;
         Actor * player;
         Map *map;
+        
 
         //Radius of zero == infinite radius
         int fov_radius;
