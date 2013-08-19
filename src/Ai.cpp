@@ -31,6 +31,17 @@ void PlayerAi::handleActionKey(Actor *player, int ascii)
 {
     switch(ascii)
     {
+        case 'd':
+            {
+                Actor *actor = choseFromInventory(player);
+                if(actor)
+                {
+                    actor->pickable->drop(actor, player);
+                    //Dropping item costs a turn
+                    engine.game_status = Engine::NEW_TURN;
+                }
+            }
+            break;
         case 'g': //Pick up the item
             {
                 bool found = false;
@@ -193,4 +204,34 @@ void MonsterAi::moveOrAttack(Actor *target, int x, int y)
     }
 }
 
+ConfusedMonsterAi::ConfusedMonsterAi(int duration, Ai *old_ai)
+    : duration(duration), old_ai(old_ai) {}
 
+void ConfusedMonsterAi::update(Actor* target)
+{
+    TCODRandom *rng = TCODRandom::getInstance();
+    int dx = rng->getInt(-1, 1);
+    int dy = rng->getInt(-1, 1);
+    if(dy != 0 || dx != 0)
+    {
+        int dest_x = target->x + dx;
+        int dest_y = target->y + dy;
+        if (engine.map->canWalk(dest_x, dest_y))
+        {
+            target->x = dest_x;
+            target->y = dest_y;
+        } else {
+            //If something is on that cell, attack it 
+            Actor *actor = engine.getActorAt(dest_x, dest_y);
+            if(actor)
+                target->attacker->attack(target, actor);
+        }
+    }
+    
+    duration--;
+    if(duration <= 0)
+    {
+        target->ai = old_ai;
+        delete this;
+    }
+}

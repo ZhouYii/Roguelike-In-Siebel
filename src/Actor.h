@@ -18,6 +18,7 @@ class Actor
         ~Actor();
         void update();
         void render() const; 
+        float getDistanceTo(int cx, int cy) const;
 };
 
 #endif

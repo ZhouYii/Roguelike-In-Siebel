@@ -31,6 +31,14 @@ class Engine {
         void render();
         void sendToBack(Actor *actor);
 
+        //Returns NULL if no monsters found within range.
+        //0 range is equivalent to infinite range
+        Actor* getClosestMonster(int x, int y, float range) const;
+        Actor* getActorAt(int x, int y) const;
+
+        //Mouse Aiming
+        bool pickATile(int *x, int *y, float max_range = 0.0f);
+
     private:
         bool compute_fov;
 };

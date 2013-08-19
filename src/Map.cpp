@@ -5,9 +5,19 @@
 //Used for the BSP tree to partition rooms
 extern const int ROOM_MAX_SIZE;
 extern const int ROOM_MIN_SIZE;
+//Item generation
 extern const int MAX_ROOM_MONSTERS;
-extern const int MOX_ROOM_ITEMS;
+extern const int MAX_ROOM_ITEMS;
 
+
+//TODO: Honestly, these should be static.
+extern const int HEALTH_POTION_HEAL;
+extern const int SCR_LIGHTNING_DMG;
+extern const int SCR_LIGHTNING_RANGE;
+extern const int SCR_FBALL_DMG;
+extern const int SCR_FBALL_RNG;
+extern const int SCR_CONFU_DUR;
+extern const int SCR_CONFU_RNG;
 /*
  * <-----------Width--------->
  * ^
@@ -62,11 +72,32 @@ void Map::addMonster(int x, int y) {
 
 void Map::addItem(int x, int y)
 {
-    Actor *health_pot = new Actor(x, y, '!', "health potion", TCODColor::violet);
-    health_pot->blocking = false;
-    health_pot->pickable = new HealingEntity(10);
-    engine.actors.push(health_pot);
+    TCODRandom *rng = TCODRandom::getInstance();
+    int roll = rng->getInt(0, 100);
+    if(roll < 70) 
+    {
+        Actor * health_potion = new Actor(x, y, '!', "health potion", TCODColor::violet);
+        health_potion->blocking = false;
+        health_potion->pickable = new HealingEntity(HEALTH_POTION_HEAL);
+        engine.actors.push(health_potion);
+    } else if (roll < 80) {
+        Actor * lightning_scroll = new Actor(x, y, '#', "lightning bolt scroll", TCODColor::lightYellow);
+        lightning_scroll->blocking = false;
+        lightning_scroll->pickable = new LightningBolt(SCR_LIGHTNING_RANGE, SCR_LIGHTNING_DMG);
+        engine.actors.push(lightning_scroll);
+    } else if (roll < 90) {
+        Actor * fball_scroll = new Actor(x, y, '#',"fireball scroll", TCODColor::lightYellow);
+        fball_scroll->blocking = false;
+        fball_scroll->pickable = new Fireball(SCR_FBALL_RNG, SCR_FBALL_DMG);
+        engine.actors.push(fball_scroll);
+    } else if (roll < 100) {
+        Actor * confusion_scroll =  new Actor(x, y, '#', "confusion scroll", TCODColor::lightYellow);
+        confusion_scroll->blocking = false;
+        confusion_scroll->pickable = new Confuse(SCR_CONFU_DUR, SCR_CONFU_RNG);
+        engine.actors.push(confusion_scroll);
+    }
 }
+
 
 
 

@@ -82,3 +82,75 @@ void Engine::sendToBack(Actor * actor)
         actors.insertBefore(actor, 0);
     }
 }
+
+Actor *Engine::getClosestMonster(int x, int y, float range) const {
+    Actor * closest = NULL;
+    float best_distance = 1E6f;
+
+    for(Actor **it = actors.begin(); it != actors.end(); it++)
+    {
+        Actor *actor = *it;
+        if(actor != player && actor->destructible && !actor->destructible->isDead())
+        {
+            float distance = actor->getDistanceTo(x, y);
+            if(distance < best_distance && (distance <= range || range == 0.0f))
+            {
+                best_distance = distance;
+                closest = actor;
+            }
+        }
+    }
+    return closest;
+}
+
+bool Engine::pickATile(int *x, int *y, float max_range)
+{
+    while(!TCODConsole::isWindowClosed())
+    {
+        render();
+
+        //Draw the targettable tiles
+        for(int cx = 0 ; cx < map->width; cx++){
+            for(int cy = 0; cy < map->height; cy++){
+                if(map->inFov(cx, cy) && (max_range == 0 || player->getDistanceTo(cx, cy) <= max_range))
+                {
+                    TCODColor col = TCODConsole::root->getCharBackground(cx, cy);
+                    col = col * 1.2f;
+                    TCODConsole::root->setCharBackground(cx,cy,col);
+                }
+            }
+        }
+        TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&last_key,&mouse);
+
+        if ( map->inFov(mouse.cx,mouse.cy) && 
+                ( max_range == 0 || player->getDistanceTo(mouse.cx,mouse.cy) <= max_range )) {
+            TCODConsole::root->setCharBackground(mouse.cx,mouse.cy,TCODColor::white);   
+            if ( mouse.lbutton_pressed ) {
+                *x=mouse.cx;
+                *y=mouse.cy;
+                return true;
+            }
+        }
+
+        //Cancel with right click or keypress
+        if (mouse.rbutton_pressed || last_key.vk != TCODK_NONE) {
+            return false;
+        }
+        TCODConsole::flush();
+    }
+
+    return false;
+}
+        
+    
+Actor *Engine::getActorAt(int x, int y) const {
+    for (Actor **iterator=actors.begin();
+        iterator != actors.end(); iterator++) {
+        Actor *actor=*iterator;
+        if ( actor->x == x && actor->y ==y && actor->destructible
+            && ! actor->destructible->isDead()) {
+            return actor;
+        }
+    }
+    return NULL;
+}

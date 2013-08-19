@@ -1,5 +1,6 @@
 #include "libtcod.hpp"
 #include "Configuration.cpp"
+#include "ItemBaseStats.cpp"
 #include "Gui.h"
 class Actor;
 #include "Destructible.h"

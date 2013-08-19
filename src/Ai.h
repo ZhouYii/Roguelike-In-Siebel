@@ -22,3 +22,13 @@ class MonsterAi : public Ai {
         int move_count;
         void moveOrAttack(Actor *target, int x, int y);
 };
+
+class ConfusedMonsterAi : public Ai {
+    public:
+        ConfusedMonsterAi(int duration, Ai *old_ai);
+        void update(Actor *target);
+
+    protected:
+        int duration;
+        Ai *old_ai;
+};
