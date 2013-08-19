@@ -6,10 +6,13 @@ extern const int PLAYER_INIT_HP;
 extern const int WINDOW_WIDTH;
 extern const int WINDOW_HEIGHT;
 
-Engine::Engine(int screen_width, int screen_height) : game_status(STARTUP), screen_width(screen_width), 
-    screen_height(screen_height), fov_radius(10)
-{
+Engine::Engine(int screen_width, int screen_height) : game_status(STARTUP), screen_width(screen_width),
+                screen_height(screen_height), player(NULL),map(NULL), fov_radius(10) {
     TCODConsole::initRoot(80, 50, "A Rogue in Siebel", false);
+    gui = new Gui();
+}
+
+void Engine::init() {
     player = new Actor(40, 25, '@', "HeroProtagonist", TCODColor::white);
     player->destructible = new PlayerDestructible(PLAYER_INIT_HP, 2, "your cold, dead body");
     player->attacker = new Attacker(5);
@@ -17,10 +20,8 @@ Engine::Engine(int screen_width, int screen_height) : game_status(STARTUP), scre
     player->container = new Container(PLAYER_INV_SIZE);
     actors.push(player);
     map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT);
-    gui = new Gui();
-
+    map->init(true);
     gui->log_message(TCODColor::red, "Welcome to Siebel Center");
-
 }
 
 Engine::~Engine()  

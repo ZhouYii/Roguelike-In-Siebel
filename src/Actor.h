@@ -1,7 +1,6 @@
 #ifndef ACTOR_H
 #define ACTOR_H
-class Actor 
-{
+class Actor : public Persistent {
     public:
         int x,y;
         int ch;
@@ -18,6 +17,8 @@ class Actor
         ~Actor();
         void update();
         void render() const; 
+        void load(TCODZip &zip);
+        void save(TCODZip &zip);
         float getDistanceTo(int cx, int cy) const;
 };
 

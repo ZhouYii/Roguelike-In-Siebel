@@ -1,10 +1,12 @@
-class Gui {
+class Gui : public Persistent {
     public :
         Gui();
         ~Gui();
         void render();
         //fancy variadic function.
         void log_message(const TCODColor &col, const char* text, ...);
+        void load(TCODZip &zip);
+        void save(TCODZip &zip);
 
 
     protected:

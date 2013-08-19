@@ -5,19 +5,9 @@
 //Used for the BSP tree to partition rooms
 extern const int ROOM_MAX_SIZE;
 extern const int ROOM_MIN_SIZE;
-//Item generation
 extern const int MAX_ROOM_MONSTERS;
-extern const int MAX_ROOM_ITEMS;
+extern const int MOX_ROOM_ITEMS;
 
-
-//TODO: Honestly, these should be static.
-extern const int HEALTH_POTION_HEAL;
-extern const int SCR_LIGHTNING_DMG;
-extern const int SCR_LIGHTNING_RANGE;
-extern const int SCR_FBALL_DMG;
-extern const int SCR_FBALL_RNG;
-extern const int SCR_CONFU_DUR;
-extern const int SCR_CONFU_RNG;
 /*
  * <-----------Width--------->
  * ^
@@ -30,14 +20,7 @@ extern const int SCR_CONFU_RNG;
  */
 
 Map::Map(int width, int height) : width(width), height(height) {
-    tiles = new Tile[width * height];
-    map = new TCODMap(width, height);
-
-    //Tree structure
-    TCODBsp bsp(0, 0, width, height);
-    bsp.splitRecursive(NULL, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
-    BspListener listener(*this);
-    bsp.traverseInvertedLevelOrder(&listener, NULL);
+    seed = TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
 }
 
 Map::~Map(){
@@ -46,6 +29,19 @@ Map::~Map(){
 
     if(map)
         delete map;
+}
+
+void Map::init(bool load_actors)
+{
+    rng = new TCODRandom(seed, TCOD_RNG_CMWC);
+    tiles = new Tile[width * height];
+    map = new TCODMap(width, height);
+
+    //Tree structure
+    TCODBsp bsp(0, 0, width, height);
+    bsp.splitRecursive(rng, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
+    BspListener listener(*this);
+    bsp.traverseInvertedLevelOrder(&listener, (void*) load_actors);
 }
 
 void Map::addMonster(int x, int y) {
@@ -72,32 +68,11 @@ void Map::addMonster(int x, int y) {
 
 void Map::addItem(int x, int y)
 {
-    TCODRandom *rng = TCODRandom::getInstance();
-    int roll = rng->getInt(0, 100);
-    if(roll < 70) 
-    {
-        Actor * health_potion = new Actor(x, y, '!', "health potion", TCODColor::violet);
-        health_potion->blocking = false;
-        health_potion->pickable = new HealingEntity(HEALTH_POTION_HEAL);
-        engine.actors.push(health_potion);
-    } else if (roll < 80) {
-        Actor * lightning_scroll = new Actor(x, y, '#', "lightning bolt scroll", TCODColor::lightYellow);
-        lightning_scroll->blocking = false;
-        lightning_scroll->pickable = new LightningBolt(SCR_LIGHTNING_RANGE, SCR_LIGHTNING_DMG);
-        engine.actors.push(lightning_scroll);
-    } else if (roll < 90) {
-        Actor * fball_scroll = new Actor(x, y, '#',"fireball scroll", TCODColor::lightYellow);
-        fball_scroll->blocking = false;
-        fball_scroll->pickable = new Fireball(SCR_FBALL_RNG, SCR_FBALL_DMG);
-        engine.actors.push(fball_scroll);
-    } else if (roll < 100) {
-        Actor * confusion_scroll =  new Actor(x, y, '#', "confusion scroll", TCODColor::lightYellow);
-        confusion_scroll->blocking = false;
-        confusion_scroll->pickable = new Confuse(SCR_CONFU_DUR, SCR_CONFU_RNG);
-        engine.actors.push(confusion_scroll);
-    }
+    Actor *health_pot = new Actor(x, y, '!', "health potion", TCODColor::violet);
+    health_pot->blocking = false;
+    health_pot->pickable = new HealingEntity(10);
+    engine.actors.push(health_pot);
 }
-
 
 
 
@@ -107,6 +82,9 @@ bool Map::isWall(int x, int y) const {
 
 bool Map::canWalk(int x, int y) const {
     if(isWall(x, y))
+        return false;
+
+    if(x < 0 || x >= width || y < 0 || y > width)
         return false;
     
     for(Actor **iterator = engine.actors.begin(); 
@@ -178,8 +156,12 @@ void Map::dig(int x1, int y1, int x2, int y2) {
 
 }
 
-void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
+void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool load_actors) {
     dig(x1, y1, x2, y2);
+    //Not loading a prior game
+    if(!load_actors)
+        return;
+
     int avg_x = (x1 + x2) / 2;
     int avg_y = (y1 + y2) / 2;
 

@@ -29,6 +29,9 @@ class Engine {
         ~Engine();
         void update();
         void render();
+        void init();
+        void load();
+        void save();
         void sendToBack(Actor *actor);
 
         //Returns NULL if no monsters found within range.

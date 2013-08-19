@@ -2,7 +2,15 @@
 #include "main.h"
 
 Destructible::Destructible(float max_hp, float defense, const char *corpse_name) :
-    max_hp(max_hp), hp(max_hp), defense(defense), corpse_name(corpse_name) {}
+    max_hp(max_hp), hp(max_hp), defense(defense){
+    if(corpse_name)
+        this->corpse_name = strdup(corpse_name);
+}
+
+Destructible::~Destructible()
+{
+    free(corpse_name);
+}
 
 float Destructible::calcDamage(Actor *target, float damage) {
     damage -= defense;

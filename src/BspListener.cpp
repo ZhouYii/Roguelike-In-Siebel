@@ -1,4 +1,5 @@
 #include "libtcod.hpp"
+#include "Persistent.h"
 #include "Map.h"
 
 extern const int ROOM_MAX_SIZE;
@@ -12,19 +13,17 @@ class BspListener : public ITCODBspCallback {
 
     public:
         BspListener(Map &map) : map(map), roomNum(0) {}
-        bool visitNode(TCODBsp *node, void *userData) {
+        bool visitNode(TCODBsp *node, void *user_data) {
             if(node->isLeaf()) {
                 //Create a room at leaf
                 int x, y, w, h;
-                TCODRandom *rng = TCODRandom::getInstance();
                 
-                //-2 guarantees no joined rooms and walls such that player cant
-                //walk out of bounds and segfault the program.
-                w=rng->getInt(ROOM_MIN_SIZE, node->w-3);
-                h=rng->getInt(ROOM_MIN_SIZE, node->h-3);
-                x=rng->getInt(node->x+1, node->x+node->w-w-1);
-                y=rng->getInt(node->y+1, node->y+node->h-h-1);
-                map.createRoom( roomNum == 0, x, y, x+w+1, y+h-1 );
+                bool load_actors = (bool)user_data;
+                w=map.rng->getInt(ROOM_MIN_SIZE, node->w-3);
+                h=map.rng->getInt(ROOM_MIN_SIZE, node->h-3);
+                x=map.rng->getInt(node->x+1, node->x+node->w-w-1);
+                y=map.rng->getInt(node->y+1, node->y+node->h-h-1);
+                map.createRoom( roomNum == 0, x, y, x+w+1, y+h-1, load_actors);
             
                 //TODO: RoomNum can be replaced with a bool
                 
