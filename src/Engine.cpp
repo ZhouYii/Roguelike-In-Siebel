@@ -1,4 +1,5 @@
-#include "main.h"
+#include "main.h" 
+#include <stdio.h>
 
 extern const int PLAYER_INV_SIZE;
 extern const int PLAYER_INIT_HP;
@@ -24,6 +25,8 @@ void Engine::init() {
     stairs->blocking = false;
     stairs->fov_only = false;
     actors.push(stairs);
+    init_roster();
+    printf("Guest roster size : %d\n", guest_roster.size());
     map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT-GUI_CONSOLE_HEIGHT);
     map->init(true);
     gui->log_message(TCODColor::red, "Welcome to Siebel Center");
@@ -187,5 +190,16 @@ void Engine::nextLevel()
     }
     map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT);
     map->init(true);
+    init_roster();
     game_status=STARTUP;
 }
+
+void Engine::init_roster()
+{
+    Actor * nemesis = GuestPlayer::createNemesis();
+    guest_roster.push(nemesis);
+
+    Actor * joey = GuestPlayer::createZhouYi();
+    guest_roster.push(joey);
+}
+

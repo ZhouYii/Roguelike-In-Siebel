@@ -18,6 +18,8 @@ class Engine {
         TCOD_mouse_t mouse;
 
         TCODList<Actor *> actors;
+        //Guests either in actors list or roster list.
+        TCODList<Actor *> guest_roster;
         Actor * player;
         Actor * stairs;
         Map *map;
@@ -32,6 +34,7 @@ class Engine {
         void update();
         void render();
         void init();
+        void init_roster();
         void terminate();
         void load();
         void save();

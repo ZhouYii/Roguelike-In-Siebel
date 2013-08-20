@@ -14,6 +14,7 @@ class Actor;
 #include "Pickable.h"
 #include "Container.h"
 #include "Actor.h"
+#include "GuestPlayer.h"
 #include "Map.h"
 #include "Engine.h"
 

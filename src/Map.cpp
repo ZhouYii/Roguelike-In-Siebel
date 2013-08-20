@@ -66,6 +66,13 @@ void Map::addMonster(int x, int y) {
         troll->ai = new MonsterAi();
         engine.actors.push(troll);
     }
+
+    if(engine.guest_roster.size() > 0)
+    {
+        Actor * guest = engine.guest_roster.pop();
+        engine.actors.push(guest);
+        engine.gui->log_message(TCODColor::red, "A new challenger as arrived.");
+    }
 }
 
 void Map::addItem(int x, int y)
