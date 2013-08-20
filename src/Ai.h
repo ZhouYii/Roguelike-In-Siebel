@@ -12,6 +12,9 @@ class Ai : public Persistent {
 
 class PlayerAi : public Ai {
     public :
+        int xp_level;
+        PlayerAi();
+        int getNextLevelXp();
         void update(Actor *target);
         void load(TCODZip &zip);
         void save(TCODZip &zip);

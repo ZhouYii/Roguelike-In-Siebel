@@ -8,6 +8,8 @@ const int TRACKING_TURNS = 3;
 
 const int PLAYER_INV_SIZE = 26;
 const int PLAYER_INIT_HP = 30;
+const int XP_COST_BASE = 0;// 200;
+const int XP_COST_MULTIPLIER = 5; //150;
 
 //Map generation variables
 const int ROOM_MAX_SIZE = 12;
@@ -17,6 +19,8 @@ const int MAX_ROOM_ITEMS = 2;
 
 //Size of the console (message bar + health bar)
 const int GUI_CONSOLE_HEIGHT = 7; //Panel Height
+const int PAUSE_MENU_WIDTH = 30;
+const int PAUSE_MENU_HEIGHT = 15;
 
 const int GUI_HEALTHBAR_WIDTH = 20; // Bar Width
 
@@ -29,7 +33,7 @@ const int INVENTORY_SCRN_HEIGHT = 28;
 
 //Game Window
 const int WINDOW_WIDTH = 80;
-const int WINDOW_HEIGHT = 43;
+const int WINDOW_HEIGHT = 50;
 
 
 #endif

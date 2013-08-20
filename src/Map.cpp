@@ -1,4 +1,6 @@
 #include "main.h"
+#include <assert.h>
+#include <stdio.h>
 
 #include "BspListener.cpp"
 
@@ -68,10 +70,37 @@ void Map::addMonster(int x, int y) {
 
 void Map::addItem(int x, int y)
 {
-    Actor *health_pot = new Actor(x, y, '!', "health potion", TCODColor::violet);
-    health_pot->blocking = false;
-    health_pot->pickable = new HealingEntity(10);
-    engine.actors.push(health_pot);
+    TCODRandom *rng=TCODRandom::getInstance();
+    int dice = rng->getInt(0,100);
+    if ( dice < 70 ) {
+        // create a health potion
+        Actor *healthPotion = new Actor(x,y,'!',"health potion",
+            TCODColor::violet);
+        healthPotion->blocking = false;
+        healthPotion->pickable = new HealingEntity(4);
+        engine.actors.push(healthPotion);
+    } else if ( dice < 70+10 ) {
+        // create a scroll of lightning bolt 
+        Actor *scrollOfLightningBolt = new Actor(x,y,'#',"scroll of lightning bolt",
+            TCODColor::lightYellow);
+        scrollOfLightningBolt->blocking = false;
+        scrollOfLightningBolt->pickable = new LightningBolt(5,20);
+        engine.actors.push(scrollOfLightningBolt);
+    } else if ( dice < 70+10+10 ) {
+        // create a scroll of fireball
+        Actor *scrollOfFireball = new Actor(x,y,'#',"scroll of fireball",
+            TCODColor::lightYellow);
+        scrollOfFireball->blocking = false;
+        scrollOfFireball->pickable = new Fireball(3,12);
+        engine.actors.push(scrollOfFireball);
+    } else {
+        // create a scroll of confusion
+        Actor *scrollOfConfusion = new Actor(x,y,'#',"scroll of confusion",
+            TCODColor::lightYellow);
+        scrollOfConfusion->blocking = false;
+        scrollOfConfusion->pickable = new Confuse(10,8);
+        engine.actors.push(scrollOfConfusion);
+    }
 }
 
 
@@ -84,7 +113,7 @@ bool Map::canWalk(int x, int y) const {
     if(isWall(x, y))
         return false;
 
-    if(x < 0 || x >= width || y < 0 || y > width)
+    if(x < 0 || x >= width-1 || y < 0 || y > height-1)
         return false;
     
     for(Actor **iterator = engine.actors.begin(); 
@@ -125,8 +154,8 @@ void Map::checkCoordinateBounds(int &x1, int &y1)
     x1 = x1 < 0 ? 0 : x1;
     y1 = y1 < 0 ? 0 : y1;
 
-    x1 = x1 >= width ? (width-1) : x1;
-    y1 = y1 >= height ? (height-1) : y1;
+    x1 = x1 >= (width - 1) ? (width-2) : x1;
+    y1 = y1 >= (height - 1) ? (height-2) : y1;
 }
 
 void Map::verifyRoomCoords(int &x1, int &y1, int &x2, int &y2)
@@ -196,6 +225,9 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool load_actor
             num_items--;
         }
     }
+
+    engine.stairs->x = (x1 + x2)/2;
+    engine.stairs->y = (y1 + y2)/2;
 }
 
 bool Map::inFov(int x, int y) const {

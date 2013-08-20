@@ -5,29 +5,34 @@ extern const int PLAYER_INIT_HP;
 
 extern const int WINDOW_WIDTH;
 extern const int WINDOW_HEIGHT;
+extern const int GUI_CONSOLE_HEIGHT;
 
 Engine::Engine(int screen_width, int screen_height) : game_status(STARTUP), screen_width(screen_width),
-                screen_height(screen_height), player(NULL),map(NULL), fov_radius(10) {
-    TCODConsole::initRoot(80, 50, "A Rogue in Siebel", false);
+                screen_height(screen_height), player(NULL),map(NULL), fov_radius(10), level(1) {
+    TCODConsole::initRoot(WINDOW_WIDTH, WINDOW_HEIGHT, "A Rogue in Siebel", false);
     gui = new Gui();
 }
 
 void Engine::init() {
     player = new Actor(40, 25, '@', "HeroProtagonist", TCODColor::white);
-    player->destructible = new PlayerDestructible(PLAYER_INIT_HP, 2, "your cold, dead body");
+    player->destructible = new PlayerDestructible(PLAYER_INIT_HP, 2, "your cold, dead body", 0);
     player->attacker = new Attacker(5);
     player->ai = new PlayerAi();
     player->container = new Container(PLAYER_INV_SIZE);
     actors.push(player);
-    map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT);
+    stairs = new Actor(0, 0, '>', "stairs", TCODColor::white);
+    stairs->blocking = false;
+    stairs->fov_only = false;
+    actors.push(stairs);
+    map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT-GUI_CONSOLE_HEIGHT);
     map->init(true);
     gui->log_message(TCODColor::red, "Welcome to Siebel Center");
+    game_status = STARTUP;
 }
 
 Engine::~Engine()  
 {
-    actors.clearAndDelete();
-    delete map;
+    terminate();
     delete gui;
 }
 
@@ -38,6 +43,10 @@ void Engine::update()
 
     game_status = IDLE;
     TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&last_key,&mouse);
+    if ( last_key.vk == TCODK_ESCAPE ) {
+        save();
+        load();
+    }
     player->update();
 
     //Check to see if player move was okay. If so, move all other Actors
@@ -63,7 +72,9 @@ void Engine::render()
     for (Actor **iterator=actors.begin(); iterator != actors.end();
         iterator++) {
         Actor *actor=*iterator;
-        if ( map->inFov(actor->x,actor->y) ) {
+        if ( (!actor->fov_only && map->isExplored(actor->x, actor->y)) || 
+                map->inFov(actor->x,actor->y) ) 
+        {
             actor->render();
         }
     }
@@ -154,4 +165,27 @@ Actor *Engine::getActorAt(int x, int y) const {
         }
     }
     return NULL;
+}
+
+void Engine::terminate() 
+{
+    actors.clearAndDelete();
+    if(map) delete map;
+    gui->clear();
+}
+
+void Engine::nextLevel()
+{
+    level++;
+    gui->log_message(TCODColor::red, "You descend deeper into the heart of Siebel");
+    delete map;
+    for (Actor **it=actors.begin(); it!=actors.end(); it++) {
+        if ( *it != player && *it != stairs ) {
+            delete *it;
+            it = actors.remove(it);
+        }
+    }
+    map = new Map(WINDOW_WIDTH, WINDOW_HEIGHT);
+    map->init(true);
+    game_status=STARTUP;
 }

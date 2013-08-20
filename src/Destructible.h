@@ -4,8 +4,9 @@ class Destructible : public Persistent {
         float hp;
         float defense; //damage = damage_raw - defence. must be pos.
         char* corpse_name; //name once dead
+        int xp;
 
-        Destructible(float max_hp, float defense, const char * corpse_name);
+        Destructible(float max_hp, float defense, const char * corpse_name, int xp);
         virtual ~Destructible();
         inline bool isDead() {return hp <= 0; };
         float calcDamage(Actor * target, float damage); //returns damage after defense
@@ -24,7 +25,7 @@ class Destructible : public Persistent {
 class MonsterDestructible : public Destructible 
 {
     public:
-        MonsterDestructible(float max_hp, float defense, const char *corpse_name);
+        MonsterDestructible(float max_hp, float defense, const char *corpse_name, int xp = 5);
         void save(TCODZip &zip);
         void die(Actor * owner);
 };
@@ -32,7 +33,7 @@ class MonsterDestructible : public Destructible
 class PlayerDestructible : public Destructible 
 {
     public:
-        PlayerDestructible(float max_hp, float defense, const char *corpse_name);
+        PlayerDestructible(float max_hp, float defense, const char *corpse_name, int xp = 0);
         void save(TCODZip &zip);
         void die(Actor * owner);
 };

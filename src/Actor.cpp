@@ -3,7 +3,7 @@
 
 Actor::Actor(int x, int y, int ch, const char* name, const TCODColor &col) :
     x(x), y(y), ch(ch), name(name), col(col), blocking(true), attacker(NULL), 
-    destructible(NULL), ai(NULL), pickable(NULL), container(NULL) {}
+    destructible(NULL), ai(NULL), pickable(NULL), container(NULL), fov_only(true) {}
 
 void Actor::render() const 
 {

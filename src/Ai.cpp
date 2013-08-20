@@ -5,8 +5,45 @@
 extern const int TRACKING_TURNS;
 extern const int INVENTORY_SCRN_WIDTH;
 extern const int INVENTORY_SCRN_HEIGHT;
+extern const int XP_COST_BASE;
+extern const int XP_COST_MULTIPLIER;
+
+PlayerAi::PlayerAi() : xp_level(1) {}
+
+int PlayerAi::getNextLevelXp() {
+    return XP_COST_BASE + xp_level*XP_COST_MULTIPLIER;
+}
+
 void PlayerAi::update(Actor *target) 
 {
+    int level_up_cost = getNextLevelXp();
+    if(target->destructible->xp >= level_up_cost)
+    {
+        xp_level++;
+        target->destructible->xp -= level_up_cost;
+        engine.gui->log_message(TCODColor::lightGreen, 
+                "Level up! You're level %d now!", xp_level);
+        engine.gui->menu.clear();
+        engine.gui->menu.addItem(Menu::CONSTITUTION,"Constitution (+20HP)");
+        engine.gui->menu.addItem(Menu::STRENGTH,"Strength (+1 attack)");
+        engine.gui->menu.addItem(Menu::AGILITY,"Agility (+1 defense)");
+        Menu::MenuItem menu_item = engine.gui->menu.pick(Menu::PAUSE);
+
+        switch (menu_item) {
+            case Menu::CONSTITUTION :
+                target->destructible->max_hp+=20;
+                target->destructible->hp+=20;
+                break;
+            case Menu::STRENGTH :
+                target->attacker->attack_points += 1;
+                break;
+            case Menu::AGILITY :
+                target->destructible->defense += 1;
+                break;
+            default:break;
+        }
+
+    }
     //Did the player fuck up and get himself killed?
     if(target->destructible && target->destructible->isDead())
         return;
@@ -31,6 +68,13 @@ void PlayerAi::handleActionKey(Actor *player, int ascii)
 {
     switch(ascii)
     {
+        case '>' :
+            if ( engine.stairs->x == player->x && engine.stairs->y == player->y ) {
+                engine.nextLevel();
+            } else {
+                engine.gui->log_message(TCODColor::lightGrey,"There are no stairs here.");
+            }
+        break;
         case 'd':
             {
                 Actor *actor = choseFromInventory(player);

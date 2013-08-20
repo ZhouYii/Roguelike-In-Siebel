@@ -19,20 +19,24 @@ class Engine {
 
         TCODList<Actor *> actors;
         Actor * player;
+        Actor * stairs;
         Map *map;
         
 
         //Radius of zero == infinite radius
         int fov_radius;
+        int level;
 
         Engine(int screen_width, int screen_height);
         ~Engine();
         void update();
         void render();
         void init();
+        void terminate();
         void load();
         void save();
         void sendToBack(Actor *actor);
+        void nextLevel();
 
         //Returns NULL if no monsters found within range.
         //0 range is equivalent to infinite range

@@ -11,9 +11,10 @@ void Engine::save() {
         
         //Save the player first to make retrieval easier.
         player->save(zip);
-        zip.putInt(actors.size()-1);
+        stairs->save(zip);
+        zip.putInt(actors.size()-2);
         for (Actor **it=actors.begin(); it!=actors.end(); it++) {
-            if ( *it != player ) {
+            if ( *it != player && *it != stairs) {
                 (*it)->save(zip);
             }
         }
@@ -127,29 +128,53 @@ void PlayerAi::save(TCODZip &zip) {
 }
 
 void Engine::load() {
-    if(TCODSystem::fileExists("game.sav")) 
-    {
-        TCODZip zip;
-        zip.loadFromFile("game.sav");
-        int width = zip.getInt();
-        int height = zip.getInt();
-        map = new Map(width, height);
-        map->load(zip);
-        player = new Actor(0,0,0,NULL,TCODColor::white);
-        player->load(zip);
-        actors.push(player);
-        int num_actors = zip.getInt();
-        while(num_actors > 0)
-        {
-            Actor *actor = new Actor(0,0,0,NULL,TCODColor::white);
-            actor->load(zip);
-            actors.push(actor);
-            num_actors--;
-        }
 
-        gui->load(zip);
-    } else {
+    engine.gui->menu.clear();
+    engine.gui->menu.addItem(Menu::NEW_GAME,"New game");
+    if ( TCODSystem::fileExists("game.sav")) {
+        engine.gui->menu.addItem(Menu::CONTINUE,"Continue");
+    }
+    engine.gui->menu.addItem(Menu::EXIT,"Exit");
+
+    Menu::MenuItem menu_item=engine.gui->menu.pick();
+
+    if ( menu_item == Menu::EXIT || menu_item == Menu::NONE ) {
+        exit(0);
+    } else if ( menu_item == Menu::NEW_GAME ) {
+        // New game
+        engine.terminate();
         engine.init();
+    } else {
+
+        if(TCODSystem::fileExists("game.sav")) 
+        {
+            TCODZip zip;
+            engine.terminate();
+            zip.loadFromFile("game.sav");
+            int width = zip.getInt();
+            int height = zip.getInt();
+            map = new Map(width, height);
+            map->load(zip);
+            player = new Actor(0,0,0,NULL,TCODColor::white);
+            player->load(zip);
+            stairs = new Actor(0,0,0,NULL,TCODColor::white);
+            stairs->load(zip);
+            actors.push(stairs);
+            actors.push(player);
+            int num_actors = zip.getInt();
+            while(num_actors > 0)
+            {
+                Actor *actor = new Actor(0,0,0,NULL,TCODColor::white);
+                actor->load(zip);
+                actors.push(actor);
+                num_actors--;
+            }
+
+            gui->load(zip);
+            game_status = STARTUP;
+        } else {
+            engine.init();
+        }
     }
 }
 

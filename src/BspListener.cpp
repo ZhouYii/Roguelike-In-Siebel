@@ -23,7 +23,11 @@ class BspListener : public ITCODBspCallback {
                 h=map.rng->getInt(ROOM_MIN_SIZE, node->h-3);
                 x=map.rng->getInt(node->x+1, node->x+node->w-w-1);
                 y=map.rng->getInt(node->y+1, node->y+node->h-h-1);
-                map.createRoom( roomNum == 0, x, y, x+w+1, y+h-1, load_actors);
+                while(x >= map.width)
+                    x--;
+                while(y >= map.height)
+                    y--;
+                map.createRoom( roomNum == 0, x, y, x+w-1, y+h-1, load_actors);
             
                 //TODO: RoomNum can be replaced with a bool
                 

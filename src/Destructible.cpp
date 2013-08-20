@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "main.h"
 
-Destructible::Destructible(float max_hp, float defense, const char *corpse_name) :
-    max_hp(max_hp), hp(max_hp), defense(defense){
+Destructible::Destructible(float max_hp, float defense, const char *corpse_name, int xp) :
+    max_hp(max_hp), hp(max_hp), defense(defense), xp(xp){
     if(corpse_name)
         this->corpse_name = strdup(corpse_name);
 }
@@ -36,17 +36,19 @@ void Destructible::die(Actor * target)
 }
 
 
-MonsterDestructible::MonsterDestructible(float max_hp, float defense, const char *corpse_name)
-    : Destructible(max_hp,defense,corpse_name) {
+MonsterDestructible::MonsterDestructible(float max_hp, float defense, const char *corpse_name,
+        int xp) : Destructible(max_hp,defense,corpse_name, xp) {
 }
  
-PlayerDestructible::PlayerDestructible(float max_hp, float defense, const char *corpse_name)
-    : Destructible(max_hp,defense,corpse_name) {
+PlayerDestructible::PlayerDestructible(float max_hp, float defense, const char *corpse_name, int xp)
+    : Destructible(max_hp,defense,corpse_name, xp) {
 }
 
 void MonsterDestructible::die(Actor *target) 
 {
-    engine.gui->log_message(TCODColor::lightGrey,"%s is dead",target->name);
+    engine.gui->log_message(TCODColor::lightGrey,"%s is dead. You gain %d xp",
+        target->name, xp);
+    engine.player->destructible->xp += xp;
     Destructible::die(target);
 }
 

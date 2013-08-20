@@ -12,6 +12,7 @@ class Actor : public Persistent {
         Ai *ai; 
         Pickable *pickable; //Can be picked up?
         Container *container; //Can hold an inventory?
+        bool fov_only;
 
         Actor(int x, int y, int ch, const char* name, const TCODColor &col);
         ~Actor();

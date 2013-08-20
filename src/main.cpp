@@ -1,6 +1,7 @@
 #include "main.h"
-
-Engine engine(80,50);
+extern const int WINDOW_WIDTH;
+extern const int WINDOW_HEIGHT;
+Engine engine(WINDOW_WIDTH,WINDOW_HEIGHT);
 
 int main() {
     engine.load();

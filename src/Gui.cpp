@@ -7,7 +7,8 @@ extern const int GUI_CONSOLE_HEIGHT;
 extern const int GUI_HEALTHBAR_WIDTH;
 extern const int GUI_LOG_XPOS;
 extern const int GUI_LOG_HEIGHT;
-extern const bool DEBUG;
+extern const int PAUSE_MENU_WIDTH;
+extern const int PAUSE_MENU_HEIGHT;
 
 Gui::Gui()
 {
@@ -16,10 +17,15 @@ Gui::Gui()
 
 Gui::~Gui() {
     delete con;
-    log.clearAndDelete();
+    clear();
 }
 
-//About const char* : Being what it is, you cannot initialize it any way other
+Menu::~Menu() 
+{
+    clear();
+}
+
+//const char* : Being what it is, you cannot initialize it any way other
 //than a memcopy or strdup. strdup allocates onto heap!
 Gui::Message::Message(const char *msg, const TCODColor &col) :
     text(strdup(msg)), col(col) {
@@ -30,6 +36,18 @@ Gui::Message::~Message(){
     free(text);
 }
 
+void Menu::clear()
+{
+    items.clearAndDelete();
+}
+
+void Menu::addItem(MenuItem item, const char *label)
+{
+    MenuLine *line = new MenuLine();
+    line->item = item;
+    line->label = label;
+    items.push(line);
+}
 void Gui::render()
 {
     con->setDefaultBackground(TCODColor::black);
@@ -53,9 +71,21 @@ void Gui::render()
             visibility += 0.3f;
     }
 
+    //Draw dungeon level number
     renderMouseLook();
+    con->setDefaultForeground(TCODColor::white);
+    con->print(3,3,"Dungeon level %d",engine.level);
+
+    //Draw EXP bar
+    PlayerAi *ai=(PlayerAi *)engine.player->ai;
+    char xp_txt[128];
+    sprintf(xp_txt,"XP(%d)",ai->xp_level);
+    renderBar(1,5, GUI_HEALTHBAR_WIDTH,xp_txt,engine.player->destructible->xp,
+            ai->getNextLevelXp(), TCODColor::lightViolet,TCODColor::darkerViolet);
+    con->setDefaultBackground(TCODColor::lightGrey);
     TCODConsole::blit(con, 0, 0, engine.screen_width, GUI_CONSOLE_HEIGHT, TCODConsole::root,
             0, engine.screen_height-GUI_CONSOLE_HEIGHT);
+    
 
 }
 
@@ -137,4 +167,69 @@ void Gui::renderMouseLook()
     con->print(1,0,buf);
 }
 
+void Gui::clear() {
+    log.clearAndDelete();
+}
 
+Menu::MenuItem Menu::pick(DisplayMode mode) {
+    int menu_x, menu_y;
+    int selected_item = 0;
+    if (mode == PAUSE) {
+        menu_x=engine.screen_width/2-PAUSE_MENU_WIDTH/2;
+        menu_y=engine.screen_height/2-PAUSE_MENU_HEIGHT/2;
+        TCODConsole::root->setDefaultForeground(TCODColor(200,180,50));
+        TCODConsole::root->setDefaultBackground(TCODColor(100,100,50));
+        TCODConsole::root->printFrame(menu_x,menu_y,PAUSE_MENU_WIDTH,PAUSE_MENU_HEIGHT,true,
+                TCOD_BKGND_ALPHA(100),"menu");
+        //Avoid the console
+        menu_x += 2;
+        menu_y += 3;
+    } else {
+        static TCODImage img("menu_background1.png");
+        img.blit2x(TCODConsole::root,0,0);
+        menu_x=60;
+        menu_y=TCODConsole::root->getHeight()/4;
+    }
+        
+    while(!TCODConsole::isWindowClosed())
+    {       /* TCODConsole::root->setDefaultForeground(TCODColor::white);
+        TCODConsole::root->print(50,5, "A Rogue in Siebel"); */
+        int current_item = 0;
+        for(MenuLine **it = items.begin(); it != items.end(); it++)
+        {
+            if(current_item == selected_item)
+            {
+                TCODConsole::root->setDefaultForeground(TCODColor::lighterOrange);
+            } else {
+                TCODConsole::root->setDefaultForeground(TCODColor::white);
+            }
+
+            TCODConsole::root->print(menu_x,menu_y+current_item*3,(*it)->label);
+            current_item++;
+        }
+
+        TCODConsole::flush();
+        TCODConsole::root->setDefaultBackground(TCODColor::lightGrey);
+
+        // check key presses
+        TCOD_key_t key;
+        TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS,&key,NULL);
+        switch (key.vk) {
+            case TCODK_UP : 
+                selected_item--; 
+                if (selected_item < 0) {
+                    selected_item=items.size()-1;
+                }
+                break;
+
+            case TCODK_DOWN : 
+                selected_item = (selected_item + 1) % items.size(); 
+                break;
+
+            case TCODK_ENTER : return items.get(selected_item)->item;
+            default : break;
+        }
+    }
+
+    return NONE;
+}
